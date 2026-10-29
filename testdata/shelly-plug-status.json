@@ -1,0 +1,8 @@
+{
+  "wifi_sta": {"connected": true, "ssid": "A", "ip": "192.168.2.14", "rssi": -60},
+  "mac": "AABBCC112233",
+  "relays": [{"ison": true, "has_timer": false, "overpower": false, "source": "input"}],
+  "meters": [{"power": 412.35, "overpower": 0.0, "is_valid": true, "timestamp": 1730000000, "counters": [410.1, 405.2, 400.3], "total": 98765}],
+  "temperature": 31.2,
+  "uptime": 123456
+}
