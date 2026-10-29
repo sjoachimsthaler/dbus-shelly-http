@@ -4,7 +4,28 @@ Integrate a PV micro inverter (e.g. Growatt NEO 2000M-X2) into [Victron Energies
 The service polls `http://<plug>/status` every 2.5 s and publishes `com.victronenergy.pvinverter.http_<DeviceInstance>` on the DBus (power, energy, L1-L3). Based on [dbus-kostal](../dbus-kostal).
 
 ## Install
-Copy the folder to `/data/dbus-shelly-plug` on the GX device, set the plug IP in `config.ini` and run `/data/dbus-shelly-plug/install.sh`.
+Log in to the GX device via SSH as root and run:
+
+```
+wget https://github.com/sjoachimsthaler/dbus-shelly-http/archive/refs/heads/main.zip
+unzip main.zip "dbus-shelly-http-main/*" -d /data
+mv /data/dbus-shelly-http-main /data/dbus-shelly-plug
+rm main.zip
+```
+
+The folder must be named `dbus-shelly-plug` because the service name is derived from it. Then set the plug IP in the config and run the installer:
+
+```
+nano /data/dbus-shelly-plug/config.ini
+chmod a+x /data/dbus-shelly-plug/install.sh
+/data/dbus-shelly-plug/install.sh
+```
+
+The installer links the service into `/service` and adds itself to `/data/rc.local`, so it survives firmware updates.
+
+To update, run `/data/dbus-shelly-plug/uninstall.sh`, remove the folder (keep a copy of your `config.ini`) and repeat the steps above.
+
+Alternatively, copy the folder manually to `/data/dbus-shelly-plug`.
 
 ## Config
 | Section | Value | Explanation |
