@@ -20,10 +20,21 @@ sys.path.insert(1, os.path.join(os.path.dirname(__file__), '/opt/victronenergy/d
 
 
 def parsePlugStatus(status, voltage):
-  """Maps the /status response of a Shelly Plug S (Gen1) to pvinverter values.
+  """Maps the status response of a Shelly Plug to pvinverter values.
 
-  Gen1 reports only power (W) and a total counter (Wh), so voltage is a fixed
-  value and current is calculated."""
+  Gen2+ (/rpc/Shelly.GetStatus) reports voltage and current itself. Gen1
+  (/status) reports only power (W) and a total counter (Wh), so voltage is a
+  fixed value and current is calculated."""
+  if 'switch:0' in status:
+    switch = status['switch:0']
+    return {
+      'serial': status['sys']['mac'],
+      'power': float(switch['apower']),
+      'voltage': float(switch.get('voltage') or voltage),
+      'current': float(switch.get('current') or 0),
+      'energy': float(switch['aenergy']['total']) / 1000, # Wh -> kWh
+    }
+
   meter = status['meters'][0]
 
   if not meter.get('is_valid', True):
@@ -41,7 +52,7 @@ def parsePlugStatus(status, voltage):
 
 
 class DbusShellyPlugService:
-  def __init__(self, paths, productname='Shelly Plug S PV', connection='Shelly Plug S Gen1 HTTP'):
+  def __init__(self, paths, productname='Shelly Plug S PV', connection='Shelly Plug HTTP'):
     from vedbus import VeDbusService
 
     config = self._getConfig()
@@ -118,7 +129,10 @@ class DbusShellyPlugService:
   def _getPlugStatus(self):
     config = self._getConfig()
 
-    URL = "http://%s/status" % (config['ONPREMISE']['Host'])
+    if config['ONPREMISE'].get('Generation', '1') == '2':
+      URL = "http://%s/rpc/Shelly.GetStatus" % (config['ONPREMISE']['Host'])
+    else:
+      URL = "http://%s/status" % (config['ONPREMISE']['Host'])
 
     auth = None
     if config['ONPREMISE']['Username']:
@@ -128,7 +142,7 @@ class DbusShellyPlugService:
 
     # check for response
     if not plug_r:
-      raise ConnectionError("No response from Shelly Plug - %s" % (URL))
+      raise ConnectionError("No response from Shelly Plug - %s (HTTP %s)" % (URL, plug_r.status_code))
 
     try:
       return parsePlugStatus(plug_r.json(), float(config['ONPREMISE']['Voltage']))

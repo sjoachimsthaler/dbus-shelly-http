@@ -23,4 +23,10 @@ try:
 except ValueError:
   pass
 
+gen2 = plug.parsePlugStatus({
+  'sys': {'mac': 'AABBCC445566'},
+  'switch:0': {'id': 0, 'output': True, 'apower': 300.5, 'voltage': 231.2, 'current': 1.3, 'aenergy': {'total': 5000.0}},
+}, 230.0)
+assert gen2 == {'serial': 'AABBCC445566', 'power': 300.5, 'voltage': 231.2, 'current': 1.3, 'energy': 5.0}
+
 print("ok", data)
